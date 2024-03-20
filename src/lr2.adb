@@ -3,7 +3,7 @@ with ada.numerics.discrete_random;
 procedure lr2 is
 
    dim : constant integer := 100000;
-   thread_num : constant integer := 2;
+   thread_num : constant integer := 3;
    id : Integer;
    arr : array(1..dim) of integer;
 
@@ -28,12 +28,12 @@ procedure lr2 is
       arr(randomN) := -1;
    end Init_Arr;
 
-   function part_min(start_index, finish_index : in integer) return long_long_integer is
-      min : long_long_integer := long_long_integer(dim + 1);
+   function part_min(start_index, finish_index : in integer) return integer is
+      min : integer := dim + 1;
    begin
       for i in start_index..finish_index loop
-         if min > Long_Long_Integer(arr(i)) then
-            min := Long_Long_Integer(arr(i));
+         if min > arr(i) then
+            min := arr(i);
             id := i;
          end if;
       end loop;
@@ -45,15 +45,15 @@ procedure lr2 is
    end starter_thread;
 
    protected part_manager is
-      procedure set_part_min(min : in Long_Long_Integer);
-      entry get_min(min : out Long_Long_Integer);
+      procedure set_part_min(min : in Integer);
+      entry get_min(min : out Integer);
    private
       tasks_count : Integer := 0;
-      minimum : Long_Long_Integer := long_long_integer(dim + 1);
+      minimum : Integer := dim + 1;
    end part_manager;
 
    protected body part_manager is
-      procedure set_part_min(min : in Long_Long_Integer) is
+      procedure set_part_min(min : in Integer) is
       begin
          if minimum > min then
             minimum := min;
@@ -61,7 +61,7 @@ procedure lr2 is
             tasks_count := tasks_count + 1;
       end set_part_min;
 
-      entry get_min(min : out Long_Long_Integer) when tasks_count = thread_num is
+      entry get_min(min : out Integer) when tasks_count = thread_num is
       begin
          min := minimum;
       end get_min;
@@ -69,7 +69,7 @@ procedure lr2 is
    end part_manager;
 
    task body starter_thread is
-      min : Long_Long_Integer := 0;
+      min : Integer := 0;
       start_index, finish_index : Integer;
    begin
       accept start(start_index, finish_index : in Integer) do
@@ -80,10 +80,10 @@ procedure lr2 is
       part_manager.set_part_min(min);
    end starter_thread;
 
-   function parallel_min return Long_Long_Integer is
+   function parallel_min return Integer is
       part_size : Integer := dim / thread_num;
       start_index, end_index : Integer;
-      min : long_long_integer := 0;
+      min : integer := 0;
       thread : array(1..thread_num) of starter_thread;
    begin
       for i in 1..thread_num loop
